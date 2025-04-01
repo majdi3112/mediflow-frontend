@@ -255,83 +255,80 @@
         }
     }
 
-let whisperRecorder = null;
 let whisperStream = null;
-let whisperChunks = [];
-let isRecording = false;
+let whisperRecorder = null;
+let isStreaming = false;
 
-document.getElementById("whisper-btn").addEventListener("click", async function () {
-    const button = this;
+let whisperChunkRecorder = null;
+let whisperChunksRealtime = [];
 
-    if (!isRecording) {
-        try {
-            // Start opname
-            whisperStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+const textArea = document.getElementById("text-input");
+const startBtn = document.getElementById("whisper-btn");
 
-            // Check voor browser support mime type
-            const options = MediaRecorder.isTypeSupported("audio/webm")
-                ? { mimeType: "audio/webm" }
-                : { mimeType: "audio/webm;codecs=opus" };
+async function startRealtimeWhisper() {
+    try {
+        whisperStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-            whisperRecorder = new MediaRecorder(whisperStream, options);
-            whisperChunks = [];
+        const options = MediaRecorder.isTypeSupported("audio/webm")
+            ? { mimeType: "audio/webm" }
+            : { mimeType: "audio/webm;codecs=opus" };
 
-            whisperRecorder.ondataavailable = function (e) {
-                if (e.data.size > 0) {
-                    whisperChunks.push(e.data);
-                }
-            };
+        whisperChunkRecorder = new MediaRecorder(whisperStream, options);
 
-            whisperRecorder.onstop = async function () {
-                const audioBlob = new Blob(whisperChunks, { type: "audio/webm" });
+        whisperChunkRecorder.ondataavailable = async function (e) {
+            if (e.data.size > 0) {
                 const formData = new FormData();
-                formData.append("file", audioBlob, "recording.webm");
+                formData.append("file", e.data, "chunk.webm");
 
                 try {
-                    const response = await fetch("https://27a4-34-125-121-153.ngrok-free.app/transcribe-audio", {
+                    const res = await fetch("https://27a4-34-125-121-153.ngrok-free.app/transcribe-audio", {
                         method: "POST",
-                        body: formData
+                        body: formData,
                     });
 
-                    const result = await response.json();
-                    if (result.error) {
-                        alert("❌ Fout bij transcriptie: " + result.error);
-                    } else {
-                        document.getElementById("text-input").value = result.transcription;
+                    const result = await res.json();
+                    if (result.transcription) {
+                        textArea.value += result.transcription + " ";
+                        autoExpand(textArea);
                     }
-                } catch (err) {
-                    console.error("❌ Fout bij uploaden:", err);
-                    alert("❌ Kon transcriptie niet ophalen.");
+                } catch (error) {
+                    console.error("Realtime chunk upload error:", error);
                 }
+            }
+        };
 
-                whisperStream.getTracks().forEach(track => track.stop());
-                whisperRecorder = null;
-                isRecording = false;
+        whisperChunkRecorder.start(3000); // elke 3 seconden een chunk
+        isStreaming = true;
+        startBtn.textContent = "⏹️ Stop";
+        startBtn.classList.remove("bg-blue-200");
+        startBtn.classList.add("bg-red-500");
+    } catch (err) {
+        console.error("🎤 Microfoonfout:", err);
+        alert("❌ Kon microfoon niet starten.");
+    }
+}
 
-                button.textContent = "🧠 Start Opname";
-                button.classList.remove("bg-red-500");
-                button.classList.add("bg-blue-200");
-            };
+function stopRealtimeWhisper() {
+    if (whisperChunkRecorder && whisperChunkRecorder.state === "recording") {
+        whisperChunkRecorder.stop();
+        whisperStream.getTracks().forEach(track => track.stop());
+        whisperStream = null;
+    }
 
-            whisperRecorder.start();
-            isRecording = true;
-            button.textContent = "⏹️ Stop";
-            button.classList.remove("bg-blue-200");
-            button.classList.add("bg-red-500");
+    isStreaming = false;
+    startBtn.textContent = "🧠 Start Opname";
+    startBtn.classList.remove("bg-red-500");
+    startBtn.classList.add("bg-blue-200");
+}
 
-        } catch (err) {
-            console.error("🎤 Microfoonfout:", err);
-            alert("❌ Kon microfoon niet starten.");
-        }
+startBtn.addEventListener("click", () => {
+    if (!isStreaming) {
+        startRealtimeWhisper();
     } else {
-        // Stop opname
-        if (whisperRecorder && whisperRecorder.state === "recording") {
-            whisperRecorder.stop(); // ⬅️ dit triggert .onstop()
-        }
+        stopRealtimeWhisper();
     }
 });
 </script>
-
 
 </body>
 </html>
