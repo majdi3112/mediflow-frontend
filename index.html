@@ -256,11 +256,8 @@
     }
 
 let whisperStream = null;
-let whisperRecorder = null;
-let isStreaming = false;
-
 let whisperChunkRecorder = null;
-let whisperChunksRealtime = [];
+let isStreaming = false;
 
 const textArea = document.getElementById("text-input");
 const startBtn = document.getElementById("whisper-btn");
@@ -297,8 +294,9 @@ async function startRealtimeWhisper() {
             }
         };
 
-        whisperChunkRecorder.start(3000); // elke 3 seconden een chunk
+        whisperChunkRecorder.start(3000); // 🔁 elke 3 seconden, recorder blijft aan
         isStreaming = true;
+
         startBtn.textContent = "⏹️ Stop";
         startBtn.classList.remove("bg-blue-200");
         startBtn.classList.add("bg-red-500");
@@ -310,7 +308,10 @@ async function startRealtimeWhisper() {
 
 function stopRealtimeWhisper() {
     if (whisperChunkRecorder && whisperChunkRecorder.state === "recording") {
-        whisperChunkRecorder.stop();
+        whisperChunkRecorder.stop(); // volledige opname stoppen
+    }
+
+    if (whisperStream) {
         whisperStream.getTracks().forEach(track => track.stop());
         whisperStream = null;
     }
@@ -328,6 +329,7 @@ startBtn.addEventListener("click", () => {
         stopRealtimeWhisper();
     }
 });
+
 </script>
 
 </body>
