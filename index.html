@@ -330,19 +330,7 @@ document.getElementById("whisper-btn").addEventListener("click", async function 
         }
     }
 });
-function applyFormatting(text) {
-    // Voeg een nieuwe regel toe na koppen gevolgd door een dubbele punt en een nummer (zoals "Symptomen:")
-    text = text.replace(/:\s*(\d+\.)/g, ":\n$1");
-    
-    text = text.replace(/•/g, "<ul><li>");
-    text = text.replace(/- (.+)/g, "<ul><li class='ml-6 list-[circle]'>$1</li></ul>");
-    text = text.replace(/\n/g, "</li>");
 
-    return text
-        .replace(/\*{2}(.+?)\*{2}/g, "<b>$1</b>")  // **Dikgedrukt** naar <b>Dikgedrukt</b>
-        .replace(/[*]/g, '')  // Verwijder overige sterretjes
-        .replace(/<\/li>/g, "</li></ul>");  // Zorgt dat <ul> correct wordt afgesloten
-}
 </script>
  <!-- AI assistant chatbox-->
  <div class="mt-8 bg-white p-4 rounded-lg shadow-lg flex flex-col border border-gray-200 relative w-2/3 mx-auto">
