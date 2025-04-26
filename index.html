@@ -1,59 +1,37 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <Style>
-  body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-     .expanding-textarea {
-       min-height: 160px;
-       max-height: 640px;
-       overflow-y: auto;
-       resize: none;
-       padding: 1rem 1rem 4rem;
-     }
-     .formatted-output {
-       background: transparent;
-       border: none;
-       box-shadow: none;
-       padding: 0;
-     }
-     .scrollable-box {
-       max-height: 240px;
-       overflow-y: auto;
-       background: transparent;
-       padding: 0;
-     }
-     .text-red { color: red; font-weight: bold; }
-     .text-orange { color: orange; font-weight: bold; }
-     .text-yellow { color: goldenrod; font-weight: bold; }
-     .text-purple { color: purple; font-weight: bold; }
-     .fade-in { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
-     @keyframes fadeIn { to { opacity: 1; } }
-     /* Force bullets vertical */
-     .formatted-output ul { display: block; margin:0 0 .75rem 1.5rem; padding:0; }
-     .formatted-output li { display:list-item; margin-bottom:.5rem; }
-     .formatted-output ul ul { margin-left:1rem; margin-bottom:.5rem; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mediflow UI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+    .expanding-textarea {
+      min-height: 160px;
+      max-height: 640px;
+      overflow-y: auto;
+      resize: none;
+      padding: 1rem 1rem 4rem;
+    }
+    .formatted-output { background: transparent; border: none; box-shadow: none; padding: 0; }
+    .scrollable-box { max-height: 240px; overflow-y: auto; background: transparent; padding: 0; }
+    .text-red { color: red; font-weight: bold; }
+    .text-orange { color: orange; font-weight: bold; }
+    .text-yellow { color: goldenrod; font-weight: bold; }
+    .text-purple { color: purple; font-weight: bold; }
+    .fade-in { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn { to { opacity: 1; } }
+    /* Force bullets vertical */
+    .formatted-output ul { display: block; margin:0 0 .75rem 1.5rem; padding:0; }
+    .formatted-output li { display:list-item; margin-bottom:.5rem; }
+    .formatted-output ul ul { margin-left:1rem; margin-bottom:.5rem; }
+  </style>
+<body class="bg-gray-50 h-screen flex font-inter">
+  <img src="images/logo.png" class="w-full h-auto object-contain">
 </head>
 <body class="bg-gray-50 h-screen flex font-inter">
-    <!-- Sidebar -->
-    <div class="w-60 bg-white shadow-lg p-4 flex flex-col justify-between h-full fixed top-0 left-0 bottom-0">
-        <div>
-            <img src="images/logo.png" alt="Mediflow Logo" class="w-full h-auto object-contain">
-            <nav class="mt-6">
-                <ul>
-                    <li class="mb-4 flex items-center space-x-2">
-                        <img src="images/notes.png" alt="Notities Icon" class="w-5 h-5">
-                        <a href="#" class="text-blue-600 font-medium">Notities</a>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                        <img src="images/help.png" alt="Hulp Icon" class="w-5 h-5">
-                        <a href="#" class="text-gray-600 hover:text-blue-600">Hulp</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        <div class="text-gray-400 text-sm">© 2025 Mediflow</div>
-    </div>
 
   <!-- Main Content -->
   <div class="flex-1 p-8 ml-48 relative">
