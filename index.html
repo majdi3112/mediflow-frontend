@@ -179,6 +179,54 @@
         });
     }
 </script>
+   <button onclick="copyToClipboard('s-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
+            📋
+        </button>
+    </div>
+    
+    <div class="mb-4 relative">
+        <h3 class="text-lg font-medium">O</h3>
+        <div id="o-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
+        <button onclick="copyToClipboard('o-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
+            📋
+        </button>
+    </div>
+
+    <div class="mb-4 relative">
+        <h3 class="text-lg font-medium">E</h3>
+        <div id="e-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
+        <button onclick="copyToClipboard('e-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
+            📋
+        </button>
+    </div>
+
+    <div class="mb-4 relative">
+        <h3 class="text-lg font-medium">P</h3>
+        <div id="p-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
+        <button onclick="copyToClipboard('p-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
+            📋
+        </button>
+    </div>
+</div>
+
+<script>
+    // 📋 Functie om tekst te kopiëren
+    function copyToClipboard(id) {
+        let field = document.getElementById(id);
+        let text = field.innerText || field.textContent;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            // Geef een tijdelijke visuele feedback
+            field.style.backgroundColor = "#d1fae5"; // Lichtgroene highlight
+            setTimeout(() => {
+                field.style.backgroundColor = ""; // Reset naar normaal
+            }, 800);
+        }).catch(err => {
+            console.error("Fout bij kopiëren:", err);
+        });
+    }
+</script>
+
 
 
 <script>
