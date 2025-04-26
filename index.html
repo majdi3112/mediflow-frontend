@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mediflow UI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .expanding-textarea {
-            min-height: 200px;
-            overflow-y: hidden;
-            resize: none;
-            padding-bottom: 40px; 
-        }
-        /* Kleurcodering */
-        .text-red { color: red; font-weight: bold; }
-        .text-orange { color: orange; font-weight: bold; }
-        .text-yellow { color: goldenrod; font-weight: bold; }
-        .text-purple { color: purple; font-weight: bold; }
-        .formatted-output ul { padding-left: 1.5rem; list-style-type: disc; }
-        .formatted-output ul ul { padding-left: 1.5rem; list-style-type: circle; } /* Sub-bulletpoints */
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+     .expanding-textarea {
+       min-height: 160px;
+       max-height: 640px;
+       overflow-y: auto;
+       resize: none;
+       padding: 1rem 1rem 4rem;
+     }
+     .formatted-output {
+       background: transparent;
+       border: none;
+       box-shadow: none;
+       padding: 0;
+     }
+     .scrollable-box {
+       max-height: 240px;
+       overflow-y: auto;
+       background: transparent;
+       padding: 0;
+     }
+     .text-red { color: red; font-weight: bold; }
+     .text-orange { color: orange; font-weight: bold; }
+     .text-yellow { color: goldenrod; font-weight: bold; }
+     .text-purple { color: purple; font-weight: bold; }
+     .fade-in { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+     @keyframes fadeIn { to { opacity: 1; } }
+     /* Force bullets vertical */
+     .formatted-output ul { display: block; margin:0 0 .75rem 1.5rem; padding:0; }
+     .formatted-output li { display:list-item; margin-bottom:.5rem; }
+     .formatted-output ul ul { margin-left:1rem; margin-bottom:.5rem; }
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex font-inter">
@@ -54,15 +63,21 @@
     </div>
     
         <!-- Input Box -->
-        <div class="mt-8 bg-white p-4 rounded-lg shadow-lg flex flex-col border border-gray-200 relative w-2/3 mx-auto">
-            <textarea id="text-input" placeholder="Hier typen..." class="w-full p-3 outline-none text-lg border-none expanding-textarea"></textarea>
-            <span id="settings-btn" class="absolute top-2 left-2 text-gray-500 text-2xl cursor-pointer"></span>
-                <button id="whisper-btn" class="absolute bottom-2 left-2 px-4 py-2 bg-blue-200 text-blue-700 rounded shadow hover:bg-blue-300">
-                   🎙️ Start Opname
-            </button>
-        </div>
-
-        </button>        
+<div class="mt-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-200 w-2/3 mx-auto">
+  <div class="relative">
+    <textarea id="text-input"
+      placeholder="Hier typen..."
+      class="w-full p-4 text-lg placeholder-gray-400 bg-transparent outline-none expanding-textarea">
+    </textarea>
+    <span id="settings-btn"
+      class="absolute top-4 right-4 text-gray-400 text-xl cursor-pointer">⚙️</span>
+  </div>
+  <button id="whisper-btn"
+    class="mt-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full shadow hover:bg-blue-200 transition inline-flex items-center">
+    🎙️ Start Opname
+  </button>
+</div>
+ 
         <!-- Audio-upload veld + knop -->
 <div class="mt-6 w-2/3 mx-auto flex items-center gap-4">
     <input type="file" id="audio-upload" accept="audio/*" class="flex-1 px-4 py-2 border border-gray-300 rounded">
@@ -72,131 +87,105 @@
 </div>
 
         <!-- Button -->
-        <div class="mt-4 flex justify-center">
-            <button id="generate-soep" class="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg shadow-lg text-lg font-medium hover:bg-gray-300">
-                SOEP
-            </button>
-        </div>
+        <div class="mt-6 flex justify-center">
+          <button id="generate-soep"
+            class="px-8 py-3 bg-gray-200 text-gray-700 rounded-full shadow hover:bg-gray-300 font-medium">
+            SOEP
+          </button>
+          </div>
+
 
 <!-- SOEP Verslag Container -->
-<div id="verslag-container" class="mt-8 w-2/3 mx-auto bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-    <h2 class="text-xl font-semibold mb-4">SOEP-Verslag</h2>
-    
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">S</h3>
-        <div id="s-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('s-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
+<div id="verslag-container" class="mt-8 w-2/3 space-y-6 hidden">
+  <template id="section-template">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 fade-in">
+      <h3 class="text-xl font-semibold mb-4">LETTER</h3>
+      <div class="relative">
+        <div class="scrollable-box">
+          <div class="formatted-output text-lg leading-relaxed"></div>
+        </div>
+        <button class="absolute bottom-4 right-4 px-2 py-1 bg-gray-100 text-gray-700 rounded-full shadow">📋</button>
+      </div>
     </div>
-    
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">O</h3>
-        <div id="o-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('o-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
+  </template>
 
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">E</h3>
-        <div id="e-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('e-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
-
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">P</h3>
-        <div id="p-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('p-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
+  <div id="s-box"></div>
+  <div id="o-box"></div>
+  <div id="e-box"></div>
+  <div id="p-box"></div>
 </div>
 
 <script>
-    // 📋 Functie om tekst te kopiëren
-    function copyToClipboard(id) {
-        let field = document.getElementById(id);
-        let text = field.innerText || field.textContent;
-        
-        navigator.clipboard.writeText(text).then(() => {
-            // Geef een tijdelijke visuele feedback
-            field.style.backgroundColor = "#d1fae5"; // Lichtgroene highlight
-            setTimeout(() => {
-                field.style.backgroundColor = ""; // Reset naar normaal
-            }, 800);
-        }).catch(err => {
-            console.error("Fout bij kopiëren:", err);
-        });
-    }
-</script>
-
-
-    <script>
-        function applyFormatting(text) {
-            text = text.replace(/•/g, "<ul><li>");
-            text = text.replace(/- (.+)/g, "<ul><li class='ml-6 list-[circle]'>$1</li></ul>"); // Sub-bulletpoints met cirkels
-            text = text.replace(/\n/g, "</li>");
-
-            return text
-                .replace(/\*{2}(.+?)\*{2}/g, "<b>$1</b>") // **Dikgedrukt** naar <b>Dikgedrukt</b>
-                .replace(/🔴\s*(.+?)\s*🔴/g, '<span class="text-red">$1</span>') // Rood tussen 🔴 en 🔴
-                .replace(/🟠\s*(.+?)\s*🟠/g, '<span class="text-orange">$1</span>') // Oranje tussen 🟠 en 🟠
-                .replace(/🟡\s*(.+?)\s*🟡/g, '<span class="text-yellow">$1</span>') // Geel tussen 🟡 en 🟡
-                .replace(/🟣\s*(.+?)\s*🟣/g, '<span class="text-purple">$1</span>') // Paars tussen 🟣 en 🟣
-                .replace(/[*]/g, '') // Verwijder overige sterretjes
-                .replace(/<\/li>/g, "</li></ul>"); // Zorgt dat <ul> correct wordt afgesloten
-        }
-        document.getElementById('generate-soep').addEventListener('click', async function() {
-            let inputText = document.getElementById('text-input').value.trim();
-
-            if (!inputText) {
-                alert("Vul eerst een tekst in om te analyseren.");
-                return;
-            }
-
-            try {
-                let response = await fetch("https://15e2-34-57-253-32.ngrok-free.app//generate-soep", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ prompt: inputText })
-                });
-
-                let result = await response.json();
-
-                if (result.error) {
-                    alert("Fout: " + result.error);
-                } else {
-                    document.getElementById("s-output").innerHTML = applyFormatting(result.s);
-                    document.getElementById("o-output").innerHTML = applyFormatting(result.o);
-                    document.getElementById("e-output").innerHTML = applyFormatting(result.e);
-                    document.getElementById("p-output").innerHTML = applyFormatting(result.p);
-                }
-            } catch (error) {
-                console.error("Fout bij ophalen:", error);
-                alert("Er is een probleem met de server. Controleer of deze actief is.");
-            }
-        });
-    </script>
-<script>
-  // 📏 Functie om tekstbalken oneindig uit te breiden
-  function autoExpand(textarea) {
-      textarea.style.height = "auto";  // Reset eerst de hoogte
-      textarea.style.height = textarea.scrollHeight + "px";  // Stel de nieuwe hoogte in
+  // 1) bullets ↔ verticale lijst + kleurcodes
+  function formatBullets(text) {
+    // vervang streepjes door bullet-char
+    const parts = text.replace(/-\s*/g,'• ').split('•').slice(1);
+    let html = '<ul class="list-disc pl-6 mb-4">';
+    parts.forEach(part => {
+      let item = part.trim();
+      // kleurcode-regels:
+      item = item
+        .replace(/🔴\s*(.+?)\s*🔴/g, '<span class="text-red">$1</span>')
+        .replace(/🟠\s*(.+?)\s*🟠/g, '<span class="text-orange">$1</span>')
+        .replace(/🟡\s*(.+?)\s*🟡/g, '<span class="text-yellow">$1</span>')
+        .replace(/🟣\s*(.+?)\s*🟣/g, '<span class="text-purple">$1</span>');
+      html += `<li class="mb-2">${item}</li>`;
+    });
+    html += '</ul>';
+    return html;
   }
 
-  // 🎯 Event listener voor typen en plakken in tekstvelden
+  // 2) bouw S/O/E/P-sectie dynamisch
+  function createSection(letter, content) {
+    const tmpl = document.getElementById('section-template');
+    const clone = tmpl.content.cloneNode(true);
+    clone.querySelector('h3').textContent = letter;
+    clone.querySelector('.formatted-output').innerHTML = formatBullets(content);
+    clone.querySelector('button').onclick = () => {
+      navigator.clipboard.writeText(
+        clone.querySelector('.formatted-output').innerText
+      );
+    };
+    return clone;
+  }
+
+  // 3) SOEP-knop + fade-in + smooth scroll
+  document.getElementById('generate-soep').addEventListener('click', async () => {
+    const input = document.getElementById('text-input').value.trim();
+    if (!input) return alert('Vul eerst een tekst in.');
+    try {
+      const res = await fetch('/generate-soep', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({prompt: input})
+      });
+      const data = await res.json();
+      ['S','O','E','P'].forEach(letter => {
+        const box = document.getElementById(letter.toLowerCase()+'-box');
+        box.innerHTML = '';
+        box.appendChild(createSection(letter, data[letter.toLowerCase()]));
+      });
+      const vc = document.getElementById('verslag-container');
+      vc.classList.remove('hidden');
+      vc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch(err) {
+      console.error(err);
+      alert('Serverfout');
+    }
+  });
+
+  // 4) auto-expand textarea (max 640px, daarna scroll)
   document.querySelectorAll('.expanding-textarea').forEach(textarea => {
-      textarea.addEventListener('input', function () {
-          autoExpand(this);
-      });
-      textarea.addEventListener('paste', function () {
-          setTimeout(() => autoExpand(this), 0); // Wacht kort zodat geplakte tekst correct verwerkt wordt
-      });
+    const max = 640;
+    function adjust() {
+      textarea.style.height = 'auto';
+      const h = Math.min(textarea.scrollHeight, max);
+      textarea.style.height = h + 'px';
+      textarea.style.overflowY = textarea.scrollHeight > max ? 'auto' : 'hidden';
+    }
+    textarea.addEventListener('input', adjust);
+    textarea.addEventListener('paste', () => setTimeout(adjust, 0));
+    adjust();
   });
 </script>
 <script>
@@ -206,7 +195,7 @@
         formData.append("file", file);
 
         try {
-            const response = await fetch("https://15e2-34-57-253-32.ngrok-free.app//transcribe-audio", {
+            const response = await fetch("https://8b24-35-227-109-177.ngrok-free.app//transcribe-audio", {
                 method: "POST",
                 body: formData
             });
@@ -237,7 +226,7 @@
         formData.append("file", file);
 
         try {
-            const response = await fetch("https://15e2-34-57-253-32.ngrok-free.app//transcribe-audio", {
+            const response = await fetch("https://8b24-35-227-109-177.ngrok-free.app//transcribe-audio", {
                 method: "POST",
                 body: formData
             });
@@ -288,7 +277,7 @@ document.getElementById("whisper-btn").addEventListener("click", async function 
                 formData.append("file", audioBlob, "recording.webm");
 
                 try {
-                    const response = await fetch("https://15e2-34-57-253-32.ngrok-free.app//transcribe-audio", {
+                    const response = await fetch("https://8b24-35-227-109-177.ngrok-free.app//transcribe-audio", {
                         method: "POST",
                         body: formData
                     });
@@ -360,7 +349,7 @@ document.getElementById("whisper-btn").addEventListener("click", async function 
   
       try {
         // Pas de URL hieronder aan naar jouw ngrok-domein of backend URL
-        const response = await fetch("https://15e2-34-57-253-32.ngrok-free.app//chat-assistant", {
+        const response = await fetch("https://8b24-35-227-109-177.ngrok-free.app//chat-assistant", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
