@@ -66,11 +66,9 @@
       margin-bottom: 0.5rem;
       margin-left: 1rem;
     }
-}
   </style>
 </head>
 <body class="h-screen flex flex-col">
-  <body class="h-screen flex flex-col">
   <!-- Loading overlay -->
   <div id="loading-overlay" class="flex">
     <div class="spinner"></div>
@@ -174,7 +172,7 @@ document.getElementById('generate-soep').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
-    const res = await fetch(…);
+    const res = await fetch('https://8b24-35-227-109-177.ngrok-free.app//generate-soep');
     const data = await res.json();
     // … inject sections …
     document.getElementById('verslag-container').classList.remove('hidden');
