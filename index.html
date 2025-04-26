@@ -178,7 +178,14 @@ document.getElementById('generate-soep').addEventListener('click', async () => {
        body: JSON.stringify({ prompt: input })
      });
     const data = await res.json();
-    // … inject sections …
+    // inject sections
+['S','O','E','P'].forEach(letter => {
+  const key = letter.toLowerCase()
+  const box = document.getElementById(key + '-box')
+  box.innerHTML = ''                                // leeg eerst de container
+  box.appendChild(createSection(letter, data[key])) // voeg de gegenereerde sectie toe
+})
+
     document.getElementById('verslag-container').classList.remove('hidden');
     document.getElementById('verslag-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(err) {
