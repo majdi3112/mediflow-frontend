@@ -172,7 +172,11 @@ document.getElementById('generate-soep').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
-    const res = await fetch('https://8b24-35-227-109-177.ngrok-free.app//generate-soep');
+      const res = await fetch('https://8b24-35-227-109-177.ngrok-free.app//generate-soep', {
+       method: 'POST',
+       headers: {'Content-Type':'application/json'},
+       body: JSON.stringify({ prompt: input })
+     });
     const data = await res.json();
     // … inject sections …
     document.getElementById('verslag-container').classList.remove('hidden');
