@@ -187,54 +187,6 @@
 </script>
 
 
-    <script>
-        function applyFormatting(text) {
-            text = text.replace(/•/g, "<ul><li>");
-            text = text.replace(/- (.+)/g, "<ul><li class='ml-6 list-[circle]'>$1</li></ul>"); // Sub-bulletpoints met cirkels
-            text = text.replace(/\n/g, "</li>");
-
-            return text
-                .replace(/\*{2}(.+?)\*{2}/g, "<b>$1</b>") // **Dikgedrukt** naar <b>Dikgedrukt</b>
-                .replace(/🔴\s*(.+?)\s*🔴/g, '<span class="text-red">$1</span>') // Rood tussen 🔴 en 🔴
-                .replace(/🟠\s*(.+?)\s*🟠/g, '<span class="text-orange">$1</span>') // Oranje tussen 🟠 en 🟠
-                .replace(/🟡\s*(.+?)\s*🟡/g, '<span class="text-yellow">$1</span>') // Geel tussen 🟡 en 🟡
-                .replace(/🟣\s*(.+?)\s*🟣/g, '<span class="text-purple">$1</span>') // Paars tussen 🟣 en 🟣
-                .replace(/[*]/g, '') // Verwijder overige sterretjes
-                .replace(/<\/li>/g, "</li></ul>"); // Zorgt dat <ul> correct wordt afgesloten
-        }
-        document.getElementById('generate-soep').addEventListener('click', async function() {
-            let inputText = document.getElementById('text-input').value.trim();
-
-            if (!inputText) {
-                alert("Vul eerst een tekst in om te analyseren.");
-                return;
-            }
-
-            try {
-                let response = await fetch("https://8b24-35-227-109-177.ngrok-free.app//generate-soep", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ prompt: inputText })
-                });
-
-                let result = await response.json();
-
-                if (result.error) {
-                    alert("Fout: " + result.error);
-                } else {
-                    document.getElementById("s-output").innerHTML = applyFormatting(result.s);
-                    document.getElementById("o-output").innerHTML = applyFormatting(result.o);
-                    document.getElementById("e-output").innerHTML = applyFormatting(result.e);
-                    document.getElementById("p-output").innerHTML = applyFormatting(result.p);
-                }
-            } catch (error) {
-                console.error("Fout bij ophalen:", error);
-                alert("Er is een probleem met de server. Controleer of deze actief is.");
-            }
-        });
-    </script>
 <script>
   // 📏 Functie om tekstbalken oneindig uit te breiden
   function autoExpand(textarea) {
