@@ -113,20 +113,29 @@
       return html;
     }
 
-    function createSection(letter, content) {
-      const tmpl = document.getElementById('section-template');
-      const clone = tmpl.content.cloneNode(true);
-      clone.querySelector('h3').textContent = letter;
-      // Zet streepjes om in bullets en render verticale lijst
-      const normalized = content.replace(/-\s*/g, '• ');
-      const formatted = formatBullets(normalized);
-      clone.querySelector('.formatted-output').innerHTML = formatted;
-      clone.querySelector('button').onclick = () => {
-        const text = clone.querySelector('.formatted-output').innerText;
-        navigator.clipboard.writeText(text);
-      };
-      return clone;
-    }
+function createSection(letter, content) {
+  const tmpl = document.getElementById('section-template');
+  const clone = tmpl.content.cloneNode(true);
+
+  // Letter kopiëren
+  clone.querySelector('h3').textContent = letter;
+
+  // Geef de formatted-output een uniek ID
+  const outputDiv = clone.querySelector('.formatted-output');
+  const outputId  = letter.toLowerCase() + '-output';
+  outputDiv.id = outputId;
+
+  // Vul de content
+  const normalized = content.replace(/-\s*/g, '• ');
+  outputDiv.innerHTML = formatBullets(normalized);
+
+  // Zet de knop onclick om onze helper aan te roepen
+  const btn = clone.querySelector('button');
+  btn.setAttribute('onclick', `copyToClipboard('${outputId}')`);
+
+  return clone;
+}
+
 
     document.getElementById('generate-soep').addEventListener('click', async () => {
       const input = document.getElementById('text-input').value.trim();
@@ -179,53 +188,7 @@
         });
     }
 </script>
-   <button onclick="copyToClipboard('s-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
-    
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">O</h3>
-        <div id="o-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('o-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
-
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">E</h3>
-        <div id="e-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('e-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
-
-    <div class="mb-4 relative">
-        <h3 class="text-lg font-medium">P</h3>
-        <div id="p-output" class="formatted-output w-full p-3 outline-none text-lg border border-gray-300 rounded-md expanding-textarea"></div>
-        <button onclick="copyToClipboard('p-output')" class="absolute bottom-2 right-2 px-2 py-1 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300">
-            📋
-        </button>
-    </div>
-</div>
-
-<script>
-    // 📋 Functie om tekst te kopiëren
-    function copyToClipboard(id) {
-        let field = document.getElementById(id);
-        let text = field.innerText || field.textContent;
-        
-        navigator.clipboard.writeText(text).then(() => {
-            // Geef een tijdelijke visuele feedback
-            field.style.backgroundColor = "#d1fae5"; // Lichtgroene highlight
-            setTimeout(() => {
-                field.style.backgroundColor = ""; // Reset naar normaal
-            }, 800);
-        }).catch(err => {
-            console.error("Fout bij kopiëren:", err);
-        });
-    }
-</script>
+  
 
 
 
@@ -421,6 +384,23 @@ document.getElementById("whisper-btn").addEventListener("click", async function 
       }
     });
   
+  </script>
+  
+   <script>
+    // 📋 Functie om tekst te kopiëren – moet globaal staan, ná al je buttons
+    function copyToClipboard(id) {
+      const field = document.getElementById(id);
+      if (!field) return console.error(`Element #${id} niet gevonden`);
+      const text = field.innerText || field.textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          // flash feedback
+          const origBg = field.style.backgroundColor;
+          field.style.backgroundColor = "#d1fae5";
+          setTimeout(() => field.style.backgroundColor = origBg, 800);
+        })
+        .catch(err => console.error("Fout bij kopiëren:", err));
+    }
   </script>
 </body>
 </html>
