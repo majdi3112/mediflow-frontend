@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Healthscribe – Jouw Medische Transcripteer App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+<body class="flex flex-col min-h-screen">
+
+  <!-- Navigation -->
+<nav class="bg-white shadow">
+    <!-- Gebruik w-full in plaats van max-w-6xl als je écht tot de rand wilt gaan -->
+    <div class="w-full flex justify-between items-center h-16 px-4 lg:px-8">
+      <!-- Logo link -->
+      <a href="https://healthscribe.nl" class="flex items-center">
+        <img
+          src="images/logo.png"
+          alt="Healthscribe Logo"
+         class="h-8 w-auto object-contain transform scale-[4.5] origin-left mt-2
+        ">
+      </a>
+  
+      <!-- Menu + Call-to-Action -->
+      <div class="flex items-center space-x-6">
+        <a href="#features" class="font-medium hover:text-blue-600">Features</a>
+        <a href="#pricing" class="font-medium hover:text-blue-600">Prijzen</a>
+        <a href="#contact" class="font-medium hover:text-blue-600">Contact</a>
+        <a
+          href="https://healthscribe.nl"
+          class="inline-block
+                 bg-gradient-to-r from-blue-500 to-blue-600
+                 text-white font-semibold
+                 py-3 px-6
+                 rounded-xl
+                 shadow-lg
+                 transform transition duration-300 ease-out
+                 hover:scale-105 hover:from-blue-600 hover:to-blue-700
+                 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          Gebruik App
+        </a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Hero -->
+  <header class="flex-1 bg-white py-24">
+    <div class="max-w-4xl mx-auto text-center px-6">
+      <h1 class="text-4xl lg:text-5xl font-bold mb-6">Medische Transcripteer Assistent</h1>
+      <p class="text-lg text-gray-600 mb-8">Versnel je medische documentatie met AI‑powered transcriptie, waar en wanneer je wilt.</p>
+      <a href="https://healthscribe.nl" class="inline-block 
+      bg-gradient-to-r from-blue-500 to-blue-600 
+      text-white font-semibold 
+      py-3 px-6 
+      rounded-xl 
+      shadow-lg 
+      transform transition duration-300 ease-out 
+      hover:scale-105 hover:from-blue-600 hover:to-blue-700 
+      focus:outline-none focus:ring-4 focus:ring-blue-300">
+Probeer Gratis
+</a>
+
+    </div>
+  </header>
+
+<!-- Features -->
+<section id="features" class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12">wat consultium doet</h2>
+  
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Live Opname -->
+        <div
+          class="bg-white p-6 rounded-2xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+        >
+
+          <h3 class="text-xl font-semibold mb-2">Live Opname</h3>
+          <p class="text-gray-600">Neem direct op en ontvang real-time transcripties, zonder gedoe.</p>
+        </div>
+  
+        <!-- SOEP Verslag -->
+        <div
+          class="bg-white p-6 rounded-2xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+        >
+          <h3 class="text-xl font-semibold mb-2">SOEP Verslag</h3>
+          <p class="text-gray-600">Genereer automatisch gestructureerde SOEP-verslagen, kant-en-klaar.</p>
+        </div>
+  
+        <!-- AI Chat Assistant -->
+        <div
+          class="bg-white p-6 rounded-2xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+        >
+
+          <h3 class="text-xl font-semibold mb-2">AI Chat Assistant</h3>
+          <p class="text-gray-600">Stel je vragen direct in de app en krijg slimme medische ondersteuning.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+
+<!-- Pricing -->
+<section id="pricing" class="bg-white py-20">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold mb-8">Onze Prijsplannen</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Gratis Plan -->
+        <div
+          class="border border-gray-200 p-6 rounded-lg bg-white
+                 transform transition duration-300 ease-out
+                 hover:scale-105 hover:shadow-xl hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+        >
+          <h3 class="font-semibold mb-4">Gratis</h3>
+          <p class="text-4xl font-bold mb-4">€0</p>
+          <p class="text-gray-600 mb-6">10 transcripties / maand</p>
+          <a
+            href="https://healthscribe.nl/signup"
+            class="inline-block border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-full font-medium
+                   transition hover:bg-blue-600 hover:text-white"
+          >
+            Aanmelden
+          </a>
+        </div>
+  
+        <!-- Pro Plan (highlighted) -->
+        <div
+          class="border border-gray-200 p-6 rounded-lg bg-blue-50
+                 transform transition duration-300 ease-out
+                 hover:scale-105 hover:shadow-2xl hover:bg-blue-100 cursor-pointer"
+        >
+          <h3 class="font-semibold mb-4">Pro</h3>
+          <p class="text-4xl font-bold mb-4">
+            €80<span class="text-lg font-normal">/maand</span>
+          </p>
+          <p class="text-gray-600 mb-6">Onbeperkt transcripties</p>
+          <a
+            href="https://healthscribe.nl/signup"
+            class="inline-block bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-full font-medium
+                   shadow hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition"
+          >
+            Aanmelden
+          </a>
+        </div>
+  
+        <!-- Team Plan -->
+        <div
+          class="border border-gray-200 p-6 rounded-lg bg-white
+                 transform transition duration-300 ease-out
+                 hover:scale-105 hover:shadow-xl hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+        >
+          <h3 class="font-semibold mb-4">Team</h3>
+          <p class="text-4xl font-bold mb-4">Contact</p>
+          <p class="text-gray-600 mb-6">Voor teams & organisaties</p>
+          <a
+            href="#contact"
+            class="inline-block border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-full font-medium
+                   transition hover:bg-blue-600 hover:text-white"
+          >
+            Contact
+          </a>
+        </div>
+  
+      </div>
+    </div>
+  </section>
+  
+
+  <!-- Contact -->
+  <section id="contact" class="py-20">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold mb-6">Neem Contact Op</h2>
+      <form action="https://healthscribe.nl/contact" method="POST" class="space-y-4">
+        <input type="email" name="email" placeholder="Je email" required class="w-full p-3 border rounded-md">
+        <textarea name="message" rows="4" placeholder="Je bericht" required class="w-full p-3 border rounded-md"></textarea>
+        <button type="submit"    class="inline-block 
+        bg-gradient-to-r from-blue-500 to-blue-600 
+        text-white font-semibold 
+        py-3 px-6 
+        rounded-xl 
+        shadow-lg 
+        transform transition duration-300 ease-out 
+        hover:scale-105 hover:from-blue-600 hover:to-blue-700 
+        focus:outline-none focus:ring-4 focus:ring-blue-300">Verstuur</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white py-6 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-gray-600">
+      <p>&copy; 2025 Healthscribe. Alle rechten voorbehouden.</p>
+      <div class="space-x-4 mt-4 md:mt-0">
+        <a href="#" class="hover:text-blue-600">Privacy</a>
+        <a href="#" class="hover:text-blue-600">Voorwaarden</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
