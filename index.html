@@ -3,54 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <title>Consultium Live Transcriptie</title>
-  <!-- 1️⃣  Socket.IO-client -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body class="p-4">
   <button id="btn">🎙️ Start</button>
   <pre id="live" style="white-space: pre-wrap; border:1px solid #ccc; padding:1rem; margin-top:1rem;"></pre>
 
-<script>
-  // 1️⃣ Use the HTTP(S) URL that Colab printed, without "/socket.io"
-  const BASE_URL = "wss://2201-35-203-170-67.ngrok-free.app";
+  <script>
+    // Gebruik hier de HTTPS-URL, niet wss://
+    const BASE_URL = "https://2201-35-203-170-67.ngrok-free.app";
 
-  let socket, recorder;
+    let socket, recorder;
 
-  async function start() {
-    // 2️⃣ Let Socket.IO handle the path and upgrade to WebSocket
-    socket = io(BASE_URL, {
-      transports: ["websocket"],  // no HTTP long-poll
-      path: "/socket.io"          // default, but explicit is fine
-    });
+    async function start() {
+      socket = io(BASE_URL, {
+        transports: ["websocket"],  // alleen WebSocket
+        path: "/socket.io"          // standaard path
+      });
 
-    socket.on("connect", ()    => console.log("🔌 verbonden"));
-    socket.on("status",  m     => console.log("status:", m));
-    socket.on("partial", txt   => document.getElementById("live").textContent = txt);
-    socket.on("final",   txt   => console.log("final:", txt));
-    socket.on("soep",    s     => alert("SOEP:\n\n" + s));
+      socket.on("connect",  ()    => console.log("🔌 verbonden"));
+      socket.on("status",   m     => console.log("status:", m));
+      socket.on("partial",  txt   => document.getElementById("live").textContent = txt);
+      socket.on("final",    txt   => console.log("final:", txt));
+      socket.on("soep",     s     => alert("SOEP:\n\n" + s));
+      socket.on("connect_error", err => console.error("Connect error:", err));
 
-    socket.emit("start");
+      socket.emit("start");
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
-    recorder.ondataavailable = e => {
-      if (e.data.size > 0) {
-        e.data.arrayBuffer().then(ab => socket.emit("chunk", ab));
-      }
-    };
-    recorder.start(1000);
-  }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      recorder.ondataavailable = e => {
+        if (e.data.size > 0) {
+          e.data.arrayBuffer().then(ab => socket.emit("chunk", ab));
+        }
+      };
+      recorder.start(1000);  // 1 s slices
+      document.getElementById("btn").textContent = "⏹️ Stop";
+    }
 
-  function stop() {
-    recorder.stop();
-    socket.emit("stop");
-    recorder = null;
-  }
+    function stop() {
+      recorder.stop();
+      socket.emit("stop");
+      recorder = null;
+      document.getElementById("btn").textContent = "🎙️ Start";
+    }
 
-  document.getElementById("btn").onclick = () =>
-    recorder ? stop() : start();
-</script>
-
-
+    document.getElementById("btn").onclick = () =>
+      recorder ? stop() : start();
+  </script>
 </body>
 </html>
