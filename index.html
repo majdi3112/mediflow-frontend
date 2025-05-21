@@ -7,7 +7,7 @@ document.getElementById("btn").onclick = async () => {
   if (!recorder) { start(); } else { stop(); }
 };
 async function start() {
-  socket = io("wss://<ngrok-id>.ngrok-free.app");
+  socket = io("wss://1847-35-233-211-24.ngrok-free.app/socket.io");
   socket.emit("start");
   socket.on("partial", t => document.getElementById("live").textContent = t);
   socket.on("soep"   , t => alert("SOEP klaar:\n" + t));
