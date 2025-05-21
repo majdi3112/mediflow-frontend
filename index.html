@@ -1,26 +1,62 @@
-<button id="btn">🎙️ Start</button>
-<pre id="live"></pre>
-<script>
-let socket, recorder;
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Consultium Live Transcriptie</title>
+  <!-- 1️⃣  Socket.IO-client -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="p-4">
+  <button id="btn">🎙️ Start</button>
+  <pre id="live" style="white-space: pre-wrap; border:1px solid #ccc; padding:1rem; margin-top:1rem;"></pre>
 
-document.getElementById("btn").onclick = async () => {
-  if (!recorder) { start(); } else { stop(); }
-};
-async function start() {
-  socket = io("wss://1847-35-233-211-24.ngrok-free.app/socket.io");
-  socket.emit("start");
-  socket.on("partial", t => document.getElementById("live").textContent = t);
-  socket.on("soep"   , t => alert("SOEP klaar:\n" + t));
+  <script>
+  // 🔧 —— pas hier je eigen wss-URL aan
+  const WS_URL = "wss://1847-35-233-211-24.ngrok-free.app/socket.io";
 
-  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-  recorder = new MediaRecorder(stream, {mimeType:"audio/webm"});
-  recorder.ondataavailable = e => socket.emit("chunk", e.data);
-  recorder.start(1000);  // ⬅️ 1 s timeslice  == ~16 kB
-  document.getElementById("btn").textContent = "⏹️ Stop";
-}
-function stop() {
-  recorder.stop(); recorder = null;
-  socket.emit("stop");
-  document.getElementById("btn").textContent = "🎙️ Start";
-}
-</script>
+  let socket = null;
+  let recorder = null;
+
+  document.getElementById("btn").onclick = () =>
+    recorder ? stop() : start();
+
+  async function start() {
+    // 2️⃣  Connect met WebSocket-only (geen HTTP long-poll fall-back)
+    socket = io(WS_URL, { transports: ["websocket"] });
+
+    socket.on("connect",   () => console.log("🔌  Verbonden"));
+    socket.on("status",    msg => console.log(msg));
+    socket.on("partial",   txt => document.getElementById("live").textContent = txt);
+    socket.on("soep",      txt => alert("SOEP klaar:\n\n" + txt));
+    socket.on("disconnect",()  => console.log("❌  Verbinding verbroken"));
+
+    socket.emit("start");
+
+    // 3️⃣  Microfoon
+    const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                    ? "audio/webm;codecs=opus" : "";
+
+    recorder = new MediaRecorder(stream, { mimeType });
+
+    // 4️⃣  Elke timeslice (1000 ms) → blob → ArrayBuffer → emit("chunk")
+    recorder.ondataavailable = async e => {
+      if (e.data && e.data.size > 0) {
+        const ab = await e.data.arrayBuffer();
+        socket.emit("chunk", ab);          //  binary!
+      }
+    };
+
+    recorder.start(1000);  // 1 s slices (mag ook 3000 ms)
+    document.getElementById("btn").textContent = "⏹️ Stop";
+  }
+
+  function stop() {
+    recorder.stop();
+    recorder = null;
+    socket.emit("stop");
+    document.getElementById("btn").textContent = "🎙️ Start";
+  }
+  </script>
+</body>
+</html>
