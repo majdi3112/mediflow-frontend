@@ -11,36 +11,46 @@
   <pre id="live" style="white-space: pre-wrap; border:1px solid #ccc; padding:1rem; margin-top:1rem;"></pre>
 
 <script>
-const WS_URL = "wss://2201-35-203-170-67.ngrok-free.app/socket.io";
-let socket, recorder;
+  // 1️⃣ Use the HTTP(S) URL that Colab printed, without "/socket.io"
+  const BASE_URL = "wss://2201-35-203-170-67.ngrok-free.app";
 
-async function start() {
-  socket = io(WS_URL, { transports: ["websocket"] });
-  socket.on("connect",   ()    => console.log("🔌 verbonden"));
-  socket.on("status",    m     => console.log("status:", m));
-  socket.on("partial",   t     => document.getElementById("live").textContent = t);
-  socket.on("final",     t     => {
-      console.log("final:", t);
-      document.getElementById("live").textContent = t;
-  });
-  socket.on("soep",      s     => alert("SOEP:\n\n"+s));
+  let socket, recorder;
 
-  socket.emit("start");
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
-  recorder.ondataavailable = e => {
-    if (e.data.size>0) e.data.arrayBuffer().then(ab => socket.emit("chunk", ab));
-  };
-  recorder.start(1000);   // **1 s** slices i.p.v. 10 s
-}
+  async function start() {
+    // 2️⃣ Let Socket.IO handle the path and upgrade to WebSocket
+    socket = io(BASE_URL, {
+      transports: ["websocket"],  // no HTTP long-poll
+      path: "/socket.io"          // default, but explicit is fine
+    });
 
-function stop() {
-  recorder.stop();
-  socket.emit("stop");
-  recorder = null;
-}
-document.getElementById("btn").onclick = () => recorder ? stop() : start();
+    socket.on("connect", ()    => console.log("🔌 verbonden"));
+    socket.on("status",  m     => console.log("status:", m));
+    socket.on("partial", txt   => document.getElementById("live").textContent = txt);
+    socket.on("final",   txt   => console.log("final:", txt));
+    socket.on("soep",    s     => alert("SOEP:\n\n" + s));
+
+    socket.emit("start");
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+    recorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        e.data.arrayBuffer().then(ab => socket.emit("chunk", ab));
+      }
+    };
+    recorder.start(1000);
+  }
+
+  function stop() {
+    recorder.stop();
+    socket.emit("stop");
+    recorder = null;
+  }
+
+  document.getElementById("btn").onclick = () =>
+    recorder ? stop() : start();
 </script>
+
 
 </body>
 </html>
