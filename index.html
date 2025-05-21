@@ -3,14 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <title>Consultium Live Transcriptie</title>
+  <!-- Socket.IO-client -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    button { font-size: 1rem; padding: 0.5rem 1rem; }
+    pre { 
+      white-space: pre-wrap; 
+      border: 1px solid #ccc; 
+      padding: 1rem; 
+      margin-top: 1rem; 
+      min-height: 3rem;
+    }
+  </style>
 </head>
-<body style="padding:1rem">
+<body>
   <button id="btn">🎙️ Start</button>
-  <pre id="live" style="white-space: pre-wrap; border:1px solid #ccc; padding:1rem; margin-top:1rem;"></pre>
+  <pre id="live"></pre>
 
   <script>
-    const BASE_URL = "https://0e08-35-185-94-24.ngrok-free.app";  // HTTPS-URL uit Colab
+    // ── SET YOUR NGROK HTTPS URL HERE ───────────────────────────────
+    const BASE_URL = "https://0e08-35-185-94-24.ngrok-free.app";
 
     let socket, recorder;
 
@@ -18,26 +31,36 @@
       console.clear();
       console.log("▶️ Starting…");
 
-      // 1) Open Socket.IO-verbinding
+      // 1) Open Socket.IO connection (HTTP → WebSocket)
       socket = io(BASE_URL, {
-        transports: ["websocket"],
-        path: "/socket.io"
+        transports: ["websocket"],  // only WebSocket transport
+        path: "/socket.io"          // default path
       });
+
       socket.on("connect",       ()  => console.log("🔌 verbonden"));
       socket.on("connect_error", err => console.error("❌ connect_error:", err));
       socket.on("status",        m   => console.log("status:", m));
-      socket.on("partial",       txt => console.log("partial:", txt));
-      socket.on("final",         txt => console.log("final:", txt));
-      socket.on("soep",          s   => console.log("soep:", s));
+      socket.on("partial",       txt => {
+        console.log("partial:", txt);
+        document.getElementById("live").textContent = txt;
+      });
+      socket.on("final",         txt => {
+        console.log("final:", txt);
+        document.getElementById("live").textContent = txt;
+      });
+      socket.on("soep",          s   => {
+        console.log("soep:", s);
+        alert("SOEP-verslag klaar:\n\n" + s);
+      });
 
+      // Tell the server to start
       socket.emit("start");
 
-      // 2) Vraag microfoon-stream
+      // 2) Capture microphone
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Laat browser kiezen voor codec
       recorder = new MediaRecorder(stream);
-      
-      // 3) Debug: check dat data aankomt
+
+      // 3) On each dataavailable, send the blob
       recorder.ondataavailable = e => {
         console.log("📦 dataavailable, size:", e.data.size);
         if (e.data.size > 0) {
@@ -48,7 +71,7 @@
         }
       };
 
-      // 4) Start met 1 s timeslice
+      // 4) Start slicing into 1s chunks
       recorder.start(1000);
       document.getElementById("btn").textContent = "⏹️ Stop";
     }
