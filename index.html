@@ -158,7 +158,7 @@
             }
 
             try {
-                let response = await fetch("https://2e0f-34-124-247-125.ngrok-free.app/generate-soep", {
+                let response = await fetch("https://6d16-34-124-247-125.ngrok-free.app/generate-soep", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -206,7 +206,7 @@
         formData.append("file", file);
 
         try {
-            const response = await fetch("https://2e0f-34-124-247-125.ngrok-free.app/transcribe-audio", {
+            const response = await fetch("https://6d16-34-124-247-125.ngrok-free.app/transcribe-audio", {
                 method: "POST",
                 body: formData
             });
@@ -237,7 +237,7 @@
         formData.append("file", file);
 
         try {
-            const response = await fetch("https://2e0f-34-124-247-125.ngrok-free.app/transcribe-audio", {
+            const response = await fetch("https://6d16-34-124-247-125.ngrok-free.app/transcribe-audio", {
                 method: "POST",
                 body: formData
             });
@@ -288,7 +288,7 @@ document.getElementById("whisper-btn").addEventListener("click", async function 
                 formData.append("file", audioBlob, "recording.webm");
 
                 try {
-                    const response = await fetch("https://2e0f-34-124-247-125.ngrok-free.app/transcribe-audio", {
+                    const response = await fetch("https://6d16-34-124-247-125.ngrok-free.app/transcribe-audio", {
                         method: "POST",
                         body: formData
                     });
