@@ -1,334 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Expense Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .table-header {
-            background-color: #f3f4f6; /* gray-100 */
-        }
-        .table-cell {
-            padding: 0.75rem 1.5rem; /* py-3 px-6 */
-            border-bottom: 1px solid #e5e7eb; /* gray-200 */
-        }
-        .summary-card {
-            background-color: #ffffff;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        }
-        .form-input {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem;
-            border: 1px solid #d1d5db; /* gray-300 */
-        }
-        .btn-primary {
-            background-color: #4f46e5; /* indigo-600 */
-            color: #ffffff;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        .btn-primary:hover {
-            background-color: #4338ca; /* indigo-700 */
-        }
-        .btn-primary:disabled {
-            background-color: #a5b4fc; /* indigo-300 */
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800">
-
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Business Expense Tracker</h1>
-            <p class="text-gray-600 mt-2">Track and manage all business-related spending for Mahmoud & Hamza.</p>
-        </header>
-
-        <!-- Summary Section -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="summary-card text-center">
-                <h3 class="text-lg font-semibold text-gray-500">Total Spent</h3>
-                <p id="total-spent" class="text-3xl font-bold text-gray-900 mt-2">$0.00</p>
-            </div>
-            <div class="summary-card text-center">
-                <h3 class="text-lg font-semibold text-gray-500">Mahmoud's Contribution</h3>
-                <p id="mahmoud-total" class="text-3xl font-bold text-indigo-600 mt-2">$0.00</p>
-            </div>
-            <div class="summary-card text-center">
-                <h3 class="text-lg font-semibold text-gray-500">Hamza's Contribution</h3>
-                <p id="hamza-total" class="text-3xl font-bold text-emerald-600 mt-2">$0.00</p>
-            </div>
-        </div>
-
-        <!-- Add Expense Form -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-bold mb-4">Add New Expense</h2>
-            <form id="expense-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div>
-                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
-                    <input type="date" id="date" class="form-input mt-1" required>
-                </div>
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                    <input type="text" id="description" placeholder="e.g., Office Supplies" class="form-input mt-1" required>
-                </div>
-                <div>
-                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount ($)</label>
-                    <input type="number" id="amount" placeholder="0.00" step="0.01" class="form-input mt-1" required>
-                </div>
-                <div>
-                    <label for="paid-by" class="block text-sm font-medium text-gray-700">Paid By</label>
-                    <select id="paid-by" class="form-input mt-1" required>
-                        <option value="Mahmoud">Mahmoud (Leader)</option>
-                        <option value="Hamza">Hamza (Co-leader)</option>
-                    </select>
-                </div>
-                <div class="md:col-span-4 text-right">
-                     <button type="submit" id="add-expense-btn" class="btn-primary w-full md:w-auto mt-4">Add Expense</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Expense Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500">
-                <thead class="text-xs text-gray-700 uppercase table-header">
-                    <tr>
-                        <th scope="col" class="table-cell">Date</th>
-                        <th scope="col" class="table-cell">Description</th>
-                        <th scope="col" class="table-cell text-right">Amount</th>
-                        <th scope="col" class="table-cell">Paid By</th>
-                        <th scope="col" class="table-cell text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="expense-table-body">
-                    <!-- Rows will be dynamically inserted here from Firestore -->
-                     <tr><td colspan="5" class="text-center py-10 text-gray-500">Loading expenses...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        // Import Firebase services
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- Firebase Initialization ---
-        // These global variables are provided by the environment.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        
-        let app, db, auth, userId;
-        let expensesCollection;
-        let unsubscribe; // To store the onSnapshot listener and detach it later if needed
-
-        // --- DOM Elements ---
-        const expenseForm = document.getElementById('expense-form');
-        const expenseTableBody = document.getElementById('expense-table-body');
-        const totalSpentEl = document.getElementById('total-spent');
-        const mahmoudTotalEl = document.getElementById('mahmoud-total');
-        const hamzaTotalEl = document.getElementById('hamza-total');
-        const addExpenseBtn = document.getElementById('add-expense-btn');
-
-        /**
-         * Renders expenses to the table and updates summaries.
-         * @param {Array} expenses - An array of expense objects from Firestore.
-         */
-        function render(expenses) {
-            expenseTableBody.innerHTML = ''; // Clear existing table rows
-
-            if (expenses.length === 0) {
-                 expenseTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No expenses recorded yet. Add one above!</td></tr>';
-            } else {
-                // Sort by date, most recent first
-                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                expenses.forEach(expense => {
-                    const row = document.createElement('tr');
-                    row.className = 'bg-white border-b';
-                    row.innerHTML = `
-                        <td class="table-cell">${expense.date}</td>
-                        <td class="table-cell font-medium text-gray-900">${escapeHTML(expense.description)}</td>
-                        <td class="table-cell text-right">$${expense.amount.toFixed(2)}</td>
-                        <td class="table-cell">
-                            <span class="px-2 py-1 font-semibold leading-tight ${expense.paidBy === 'Mahmoud' ? 'text-indigo-700 bg-indigo-100' : 'text-emerald-700 bg-emerald-100'} rounded-full">
-                                ${escapeHTML(expense.paidBy)}
-                            </span>
-                        </td>
-                        <td class="table-cell text-center">
-                            <button class="text-red-500 hover:text-red-700 font-medium" onclick="deleteExpenseById('${expense.id}')">Delete</button>
-                        </td>
-                    `;
-                    expenseTableBody.appendChild(row);
-                });
-            }
-            updateSummary(expenses);
-        }
-
-        /**
-         * Updates the summary cards with the latest totals.
-         * @param {Array} expenses - The array of expense objects.
-         */
-        function updateSummary(expenses) {
-            const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-            const mahmoudTotal = expenses
-                .filter(exp => exp.paidBy === 'Mahmoud')
-                .reduce((sum, exp) => sum + exp.amount, 0);
-            const hamzaTotal = expenses
-                .filter(exp => exp.paidBy === 'Hamza')
-                .reduce((sum, exp) => sum + exp.amount, 0);
-
-            totalSpentEl.textContent = `$${totalSpent.toFixed(2)}`;
-            mahmoudTotalEl.textContent = `$${mahmoudTotal.toFixed(2)}`;
-            hamzaTotalEl.textContent = `$${hamzaTotal.toFixed(2)}`;
-        }
-
-        /**
-         * Handles the form submission to add a new expense to Firestore.
-         * @param {Event} e - The form submission event.
-         */
-        async function addExpense(e) {
-            e.preventDefault();
-            addExpenseBtn.disabled = true;
-
-            const dateInput = document.getElementById('date');
-            const descriptionInput = document.getElementById('description');
-            const amountInput = document.getElementById('amount');
-            const paidByInput = document.getElementById('paid-by');
-
-            if (!dateInput.value || !descriptionInput.value || !amountInput.value || !userId) {
-                console.error("Form is invalid or user is not authenticated.");
-                addExpenseBtn.disabled = false;
-                return;
-            }
-
-            const newExpense = {
-                date: dateInput.value,
-                description: descriptionInput.value,
-                amount: parseFloat(amountInput.value),
-                paidBy: paidByInput.value,
-                createdAt: serverTimestamp() // For ordering
-            };
-
-            try {
-                await addDoc(expensesCollection, newExpense);
-                expenseForm.reset(); // Reset form on successful submission
-                document.getElementById('date').valueAsDate = new Date(); // Reset date to today
-            } catch (error) {
-                console.error("Error adding document: ", error);
-            } finally {
-                addExpenseBtn.disabled = false;
-            }
-        }
-        
-        /**
-         * Deletes an expense document from Firestore by its ID.
-         * @param {string} id - The Firestore document ID of the expense to delete.
-         */
-        window.deleteExpenseById = async function(id) {
-            if (!id || !userId) {
-                console.error("Document ID is missing or user is not authenticated.");
-                return;
-            }
-            try {
-                const docRef = doc(db, `artifacts/${appId}/users/${userId}/expenses`, id);
-                await deleteDoc(docRef);
-                // The onSnapshot listener will automatically re-render the list.
-            } catch (error) {
-                console.error("Error deleting document: ", error);
-            }
-        }
-        
-        /**
-         * Sets up a real-time listener for the expenses collection.
-         */
-        function listenForExpenses() {
-            if (unsubscribe) unsubscribe(); // Detach any previous listener
-
-            expensesCollection = collection(db, `artifacts/${appId}/users/${userId}/expenses`);
-            const q = query(expensesCollection); // No ordering needed here, will sort in render()
-
-            unsubscribe = onSnapshot(q, (querySnapshot) => {
-                const expenses = [];
-                querySnapshot.forEach((doc) => {
-                    expenses.push({ id: doc.id, ...doc.data() });
-                });
-                render(expenses);
-            }, (error) => {
-                console.error("Error listening for expenses: ", error);
-                expenseTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">Could not load expenses. Please refresh.</td></tr>';
-            });
-        }
-
-        /**
-         * A simple utility to escape HTML to prevent XSS.
-         * @param {string} str - The string to escape.
-         * @returns {string} The escaped string.
-        */
-        function escapeHTML(str) {
-            if (typeof str !== 'string') return '';
-            const div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
-            return div.innerHTML;
-        }
-
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Set default date to today
-            document.getElementById('date').valueAsDate = new Date();
-            
-            try {
-                // Initialize Firebase App
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                setLogLevel('debug'); // For more detailed logs
-
-                // Listen for authentication state changes
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        // User is signed in.
-                        userId = user.uid;
-                        console.log("User authenticated with UID:", userId);
-                        listenForExpenses(); // Start listening for data
-                    } else {
-                        // User is signed out. Attempt to sign in.
-                        console.log("No user found, attempting to sign in...");
-                        try {
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await signInWithCustomToken(auth, __initial_auth_token);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Error during sign-in:", error);
-                            expenseTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">Authentication failed. Cannot load or save data.</td></tr>';
-                        }
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                expenseTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">Failed to connect to the database.</td></tr>';
-            }
-
-            // Add form submit listener
-            expenseForm.addEventListener('submit', addExpense);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png" sizes="168x168">
+  <title>Inloggen – Consultium</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const backendURL = ""; // same-origin (works behind Caddy)
+    function buildUrl(path, params) {
+      const url = new URL(path, window.location.origin);
+      if (params && typeof params === 'object') {
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
         });
-    </script>
+      }
+      return url.pathname + (url.search ? url.search : '');
+    }
+    const endpoints = {
+      login: buildUrl('/api/login')
+    };
 
+    async function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch(endpoints.login, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // 🔥 Nodig voor sessies
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          sessionStorage.setItem("user_logged_in", "true");
+          window.location.href = "{{ url_for('home') }}";
+        } else {
+          alert(data.error || "❌ Onjuiste gebruikersnaam of wachtwoord.");
+        }
+
+      } catch (error) {
+        console.error("Loginfout:", error);
+        alert("⚠️ Kon geen verbinding maken met de server.");
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center py-8 font-inter select-none focus:outline-none">
+  <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
+       <!-- FULL LOGO -->
+  <img
+      src="{{ url_for('static', filename='images/full-logo.png') }}"
+      alt="Consultium logo"
+      class="mx-auto mb-6 transform origin-center"
+  />
+    <h1 class="text-2xl font-semibold mb-6 text-center">Log in op jouw account</h1>
+    <form onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label for="username" class="block text-gray-700">Gebruikersnaam</label>
+        <input type="text" id="username" required autocomplete="username"
+               class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+      </div>
+      <div>
+        <label for="password" class="block text-gray-700">Wachtwoord</label>
+        <input type="password" id="password" required autocomplete="current-password"
+               class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+      </div>
+      <button type="submit"
+              class="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+        Inloggen
+      </button>
+    </form>
+    <!-- Registratie verborgen -->
+  </div>
 </body>
 </html>
