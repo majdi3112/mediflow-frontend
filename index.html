@@ -7,7 +7,7 @@
   <title>Inloggen – Consultium</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    const backendURL = "https://21a636bbe436.ngrok-free.app"; // 🔥 jouw ngrok-link
+    const backendURL = "https://21a636bbe436.ngrok-free.app"; // 🔥 Jouw ngrok-link hier ingevuld
     const endpoints = {
       login: `${backendURL}/api/login`
     };
@@ -29,7 +29,7 @@
 
         if (response.ok && data.success) {
           sessionStorage.setItem("user_logged_in", "true");
-          window.location.href = `${backendURL}/home`;
+          window.location.href = "home.html";
         } else {
           alert(data.error || "❌ Onjuiste gebruikersnaam of wachtwoord.");
         }
