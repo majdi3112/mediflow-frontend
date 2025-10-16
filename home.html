@@ -676,30 +676,19 @@
 
   <!-- Scripts -->
   <script>
-    const BASE_ORIGIN = "https://21a636bbe436.ngrok-free.app";
+    const backendURL = "https://21a636bbe436.ngrok-free.app"; // 🔥 jouw ngrok-link
     // Centralized URL builder and endpoint map
     const RT_SID = (crypto?.randomUUID && crypto.randomUUID()) || String(Date.now());
-    function buildUrl(path, params) {
-      const url = new URL(path, BASE_ORIGIN);
-      if (params && typeof params === 'object') {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            url.searchParams.append(key, String(value));
-          }
-        });
-      }
-      return url.pathname + (url.search ? url.search : '');
-    }
     const endpoints = {
-      generateSoep: buildUrl('/generate-soep'),
-      realtimeTranscribe: buildUrl('/realtime-transcribe', { sid: RT_SID }),
-      transcribeAudio: buildUrl('/transcribe-audio'),
-      intelligentTranslate: buildUrl('/intelligent-translate')
+      generateSoep: `${backendURL}/generate-soep`,
+      realtimeTranscribe: `${backendURL}/realtime-transcribe?sid=${encodeURIComponent(RT_SID)}`,
+      transcribeAudio: `${backendURL}/transcribe-audio`,
+      intelligentTranslate: `${backendURL}/intelligent-translate`
     };
     // Fix logout link to absolute ngrok origin
     document.addEventListener('DOMContentLoaded', () => {
       const logout = document.getElementById('logout-link');
-      if (logout) logout.href = new URL('/index', BASE_ORIGIN).href;
+      if (logout) logout.href = `${backendURL}/index`;
     });
     let realtimeTranscribeUrl = endpoints.realtimeTranscribe;
     // Tab switching functionality
