@@ -342,7 +342,7 @@
           </button>
           <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-200">
             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Account Instellingen</a>
-            <a id="logout-link" href="index.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Uitloggen</a>
+            <a href="index.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Uitloggen</a>
           </div>
         </div>
       </div>
@@ -676,14 +676,14 @@
 
   <!-- Scripts -->
   <script>
-    const backendURL = "https://21a636bbe436.ngrok-free.app"; // 🔥 Jouw ngrok-link hier ingevuld
-    // Centralized URL builder and endpoint map
+    // Hard-coded API base for ngrok deployment
+    const API_BASE = 'https://ebf0676e069d.ngrok-free.app';
     const RT_SID = (crypto?.randomUUID && crypto.randomUUID()) || String(Date.now());
     const endpoints = {
-      generateSoep: backendURL + '/generate-soep',
-      realtimeTranscribe: backendURL + '/realtime-transcribe?sid=' + encodeURIComponent(RT_SID),
-      transcribeAudio: backendURL + '/transcribe-audio',
-      intelligentTranslate: backendURL + '/intelligent-translate'
+      generateSoep: API_BASE + '/generate-soep',
+      realtimeTranscribe: API_BASE + '/realtime-transcribe?sid=' + encodeURIComponent(RT_SID),
+      transcribeAudio: API_BASE + '/transcribe-audio',
+      intelligentTranslate: API_BASE + '/intelligent-translate'
     };
     let realtimeTranscribeUrl = endpoints.realtimeTranscribe;
     // Tab switching functionality
