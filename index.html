@@ -7,9 +7,9 @@
   <title>Inloggen – Consultium</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    const backendURL = ""; // same-origin (works behind Caddy)
+    const BASE_ORIGIN = "https://f4d7597aabfb.ngrok-free.app";
     function buildUrl(path, params) {
-      const url = new URL(path, window.location.origin);
+      const url = new URL(path, BASE_ORIGIN);
       if (params && typeof params === 'object') {
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null) url.searchParams.append(k, String(v));
@@ -38,7 +38,7 @@
 
         if (response.ok && data.success) {
           sessionStorage.setItem("user_logged_in", "true");
-          window.location.href = "{{ url_for('home') }}";
+          window.location.href = new URL('/home', BASE_ORIGIN).href;
         } else {
           alert(data.error || "❌ Onjuiste gebruikersnaam of wachtwoord.");
         }
