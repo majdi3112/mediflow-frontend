@@ -341,8 +341,8 @@
             <img src="static/images/default.png" alt="Profiel" class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer">
           </button>
           <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-200">
-            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Account Instellingen</a>
-            <a href="index.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Uitloggen</a>
+            <!-- Account Instellingen verborgen -->
+            <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Uitloggen</a>
           </div>
         </div>
       </div>
@@ -565,7 +565,7 @@
                 📋 Kopiëren
               </button>
             </div>
-            <div id="s-content" class="text-gray-700 leading-relaxed"></div>
+            <div id="s-content" class="text-gray-700 leading-relaxed rounded-md p-3 border border-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-300 min-h-[64px]" contenteditable="true" spellcheck="true"></div>
           </div>
 
           <div id="o-section" class="soep-section">
@@ -575,7 +575,7 @@
                 📋 Kopiëren
               </button>
             </div>
-            <div id="o-content" class="text-gray-700 leading-relaxed"></div>
+            <div id="o-content" class="text-gray-700 leading-relaxed rounded-md p-3 border border-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-300 min-h-[64px]" contenteditable="true" spellcheck="true"></div>
           </div>
 
           <div id="e-section" class="soep-section">
@@ -585,7 +585,7 @@
                 📋 Kopiëren
               </button>
             </div>
-            <div id="e-content" class="text-gray-700 leading-relaxed"></div>
+            <div id="e-content" class="text-gray-700 leading-relaxed rounded-md p-3 border border-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-300 min-h-[64px]" contenteditable="true" spellcheck="true"></div>
           </div>
 
           <div id="p-section" class="soep-section">
@@ -595,7 +595,7 @@
                 📋 Kopiëren
               </button>
             </div>
-            <div id="p-content" class="text-gray-700 leading-relaxed"></div>
+            <div id="p-content" class="text-gray-700 leading-relaxed rounded-md p-3 border border-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-300 min-h-[64px]" contenteditable="true" spellcheck="true"></div>
           </div>
         </div>
       </div>
@@ -676,14 +676,35 @@
 
   <!-- Scripts -->
   <script>
-    // Hard-coded API base for ngrok deployment
-    const API_BASE = 'https://758c35fb669a.ngrok-free.app';
+    // Centralized URL builder and endpoint map (supports external BACKEND_BASE, e.g. ngrok)
     const RT_SID = (crypto?.randomUUID && crypto.randomUUID()) || String(Date.now());
+    const urlParams = new URLSearchParams(window.location.search);
+    const BACKEND_BASE = urlParams.get('backend') || window.BACKEND_BASE || 'https://1569dee397ee.ngrok-free.app';
+
+    function getBackendBase() {
+      try {
+        return BACKEND_BASE && BACKEND_BASE.trim() ? BACKEND_BASE.trim().replace(/\/$/, '') : window.location.origin;
+      } catch (_) {
+        return window.location.origin;
+      }
+    }
+
+    function buildUrl(path, params) {
+      const url = new URL(path, getBackendBase());
+      if (params && typeof params === 'object') {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.append(key, String(value));
+          }
+        });
+      }
+      return url.toString();
+    }
     const endpoints = {
-      generateSoep: API_BASE + '/generate-soep',
-      realtimeTranscribe: API_BASE + '/realtime-transcribe?sid=' + encodeURIComponent(RT_SID),
-      transcribeAudio: API_BASE + '/transcribe-audio',
-      intelligentTranslate: API_BASE + '/intelligent-translate'
+      generateSoep: buildUrl('/generate-soep'),
+      realtimeTranscribe: buildUrl('/realtime-transcribe', { sid: RT_SID }),
+      transcribeAudio: buildUrl('/transcribe-audio'),
+      intelligentTranslate: buildUrl('/intelligent-translate')
     };
     let realtimeTranscribeUrl = endpoints.realtimeTranscribe;
     // Tab switching functionality
@@ -761,7 +782,10 @@
         // Populate SOEP sections
         ['s', 'o', 'e', 'p'].forEach(section => {
           const content = data[section] || 'Geen gegevens beschikbaar';
-          document.getElementById(`${section}-content`).innerHTML = formatContent(content);
+          const el = document.getElementById(`${section}-content`);
+          // Preserve editable state: set text, not HTML; show with line breaks in UI but allow editing
+          el.innerHTML = '';
+          el.textContent = content;
         });
         
         // Show results and switch to SOEP tab
@@ -793,8 +817,14 @@
 
     function copySection(sectionId) {
       const element = document.getElementById(sectionId);
-      const text = element.innerText || element.textContent;
-      
+      // Flatten line breaks and extra spaces into a single flowing paragraph
+      let text = (element.innerText || element.textContent || '').trim();
+      text = text
+        .replace(/\r?\n+/g, ' ')   // merge line breaks to spaces
+        .replace(/\s{2,}/g, ' ')    // collapse multiple spaces
+        .replace(/\s+([,;:.!?])/g, '$1') // remove space before punctuation
+        .trim();
+
       navigator.clipboard.writeText(text).then(() => {
         // Visual feedback
         const button = element.parentElement.querySelector('button');
@@ -824,6 +854,10 @@
     let lastSpeakerText = '';
     // No special WebM header handling for realtime chunks
     let isSendingRealtime = false;
+    // WebSocket streaming
+    let ws = null;
+    let isWsActive = false;
+    let audioWorkletNode = null;
 
     // WAV-based realtime capture (PCM ring buffer at 16kHz)
     let audioContext = null;
@@ -835,6 +869,12 @@
     const TARGET_SAMPLE_RATE = 16000;
     const WINDOW_SECONDS = 20; // ~last 20 chunks (1.5s tick)
     const MAX_BUFFER_SECONDS = 20;
+
+    function getWsUrl() {
+      const base = getBackendBase();
+      const wsBase = base.replace(/^http/i, 'ws');
+      return `${wsBase}/ws/realtime?sid=${encodeURIComponent(RT_SID)}`;
+    }
 
     function downsampleTo16k(float32, originalRate) {
       if (originalRate === TARGET_SAMPLE_RATE) return float32;
@@ -1128,7 +1168,15 @@
          liveTranscriptionText = '';
          lastSpeakerText = '';
          
-         audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+         audioStream = await navigator.mediaDevices.getUserMedia({
+           audio: {
+             channelCount: 1,
+             sampleRate: 48000,
+             echoCancellation: false,
+             noiseSuppression: true,
+             autoGainControl: false
+           }
+         });
          batchChunks = [];
          realtimeChunks = [];
          
@@ -1182,6 +1230,41 @@
          audioContext = new (window.AudioContext || window.webkitAudioContext)();
          pcmSampleRate = audioContext.sampleRate;
          sourceNode = audioContext.createMediaStreamSource(audioStream);
+         // Try AudioWorklet + WebSocket streaming (preferred)
+         try {
+           if (audioContext.audioWorklet) {
+            await audioContext.audioWorklet.addModule(
+              new URL('/static/pcm16-worklet.js', getBackendBase()).toString()
+            );
+             audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm16-worklet');
+             sourceNode.connect(audioWorkletNode);
+             const url = getWsUrl();
+             ws = new WebSocket(url);
+             ws.binaryType = 'arraybuffer';
+             ws.onopen = () => { isWsActive = true; console.log('WS connected'); };
+             ws.onerror = (e) => { console.warn('WS error', e); };
+             ws.onclose = () => { console.log('WS closed'); isWsActive = false; };
+             audioWorkletNode.port.onmessage = (e) => {
+               if (ws && ws.readyState === WebSocket.OPEN) {
+                 try { ws.send(e.data); } catch (err) { console.warn('WS send failed', err); }
+               }
+             };
+             ws.onmessage = (ev) => {
+               try {
+                 const msg = JSON.parse(ev.data);
+                 if (msg.type === 'transcript') {
+                   const full = (msg.stable || '') + (msg.partial || '');
+                   liveTranscriptionText = full;
+                   if (msg.stable) { lastSpeakerText = msg.stable; }
+                   updateLiveTranscriptionDisplay(full);
+                 }
+               } catch (err) { console.warn('WS parse failed', err); }
+             };
+           }
+         } catch (e) {
+           console.warn('AudioWorklet/WS init failed, falling back to HTTP POST mode', e);
+         }
+
          processorNode = audioContext.createScriptProcessor(4096, 1, 1);
          processorNode.onaudioprocess = (e) => {
            if (recordingCancelled) return;
@@ -1202,7 +1285,7 @@
          
          // Start real-time transcription interval - faster for immediate feedback  
          realtimeInterval = setInterval(() => {
-          if (!recordingCancelled && mediaRecorderRealtime && mediaRecorderRealtime.state === 'recording') {
+         if (!isWsActive && !recordingCancelled && mediaRecorderRealtime && mediaRecorderRealtime.state === 'recording') {
              console.log(`🔄 Real-time interval tick - chunks available: ${realtimeChunks.length}`);
              sendRealtimeChunk();
            } else {
@@ -1227,6 +1310,10 @@
       if (mediaRecorderBatch && mediaRecorderBatch.state === 'recording') {
         mediaRecorderBatch.stop();
       }
+      // Close WS if active
+      try { if (ws) { ws.close(); } } catch (e) {}
+      ws = null; isWsActive = false;
+      if (audioWorkletNode) { try { audioWorkletNode.disconnect(); } catch (e) {} audioWorkletNode = null; }
       
       // Stop real-time transcription
       if (realtimeInterval) {
@@ -1255,6 +1342,10 @@
        if (mediaRecorderBatch && mediaRecorderBatch.state === 'recording') {
          mediaRecorderBatch.stop();
        }
+      // Close WS if active
+      try { if (ws) { ws.close(); } } catch (e) {}
+      ws = null; isWsActive = false;
+      if (audioWorkletNode) { try { audioWorkletNode.disconnect(); } catch (e) {} audioWorkletNode = null; }
        
        // Stop real-time transcription
        if (realtimeInterval) {
